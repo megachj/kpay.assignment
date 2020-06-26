@@ -15,7 +15,12 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @IdClass(DistributedInfoEntity.Id.class)
-@Table(name = "distributed_info")
+@Table(name = "distributed_info",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {"statementId", "userId"}
+                )
+        })
 public class DistributedInfoEntity extends DistributedInfo {
 
     @Version
@@ -33,6 +38,7 @@ public class DistributedInfoEntity extends DistributedInfo {
         return newEntity;
     }
 
+    // unique key
     @Override
     @javax.persistence.Id
     @Column(nullable = false)
@@ -60,6 +66,7 @@ public class DistributedInfoEntity extends DistributedInfo {
         return state;
     }
 
+    // unique key
     @Override
     @Column
     public Integer getUserId() {

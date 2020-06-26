@@ -2,6 +2,7 @@ package megachj.kpay.assignment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import megachj.kpay.assignment.model.dto.DistributedInfo;
 import megachj.kpay.assignment.model.entity.DistributedInfoEntity;
 import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
 import megachj.kpay.assignment.model.rest.SprinklingInfo;
@@ -11,7 +12,10 @@ import megachj.kpay.assignment.utils.RandomGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,27 +50,79 @@ public class MoneySprinklingService {
         return token;
     }
 
-    /*
-    에러 경우의 수:
-      - <roomId, token> 정보 찾을 수 없음
-      - token 만료
-      - 이미 받은 유저
-      - 이미 모두 받기 완료된 뿌리기
-     */
     @Transactional
     public int receiveMoney(int userId, String roomId, String token) {
+        LocalDateTime now = LocalDateTime.now();
+        SprinklingStatementEntity entity = moneySprinklingRepository.findDetailEntity(roomId, token);
 
-        return 0;
+        checkReceiveMoneyPreCondition(entity, now, userId);
+
+        DistributedInfoEntity distributedInfoEntity = entity.getDistributedInfoEntityList()
+                .stream()
+                .filter(v -> v.getState() == DistributedInfo.State.NOT_YET)
+                .findAny()
+                .orElseThrow(RuntimeException::new);
+
+        distributedInfoEntity.setState(DistributedInfo.State.DONE);
+        distributedInfoEntity.setUserId(userId);
+        distributedInfoEntity.setRecvTimestamp(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+
+        return distributedInfoEntity.getAmount();
     }
 
-    /*
-    에러 경우의 수:
-      - <roomId, token> 정보 찾을 수 없음(7일 이후 조회 포함)
-      - 뿌린 userId 가 아님
-     */
+    private void checkReceiveMoneyPreCondition(SprinklingStatementEntity entity, LocalDateTime now, int userId) {
+        // 데이터 없음
+        if (entity == null) {
+            throw new RuntimeException();
+        }
+
+        // token 만료
+        LocalDateTime expiredDate = LocalDateTime.ofInstant(entity.getExpiredDate().toInstant(), ZoneId.systemDefault());
+        if (!now.isBefore(expiredDate)) {
+            throw new RuntimeException();
+        }
+
+        // 뿌린 유저
+        if (entity.getUserId() == userId) {
+            throw new RuntimeException();
+        }
+
+        // 이미 한 번 받은 유저
+        if (entity.getDistributedInfoEntityList().stream().filter(v -> v.getState() == DistributedInfo.State.DONE).anyMatch(v -> v.getUserId() == userId)) {
+            throw new RuntimeException();
+        }
+
+        // 모두 받기 완료된 경우
+        if (entity.getDistributedInfoEntityList().stream().allMatch(v -> v.getState() == DistributedInfo.State.DONE)) {
+            throw new RuntimeException();
+        }
+    }
+
     @Transactional(readOnly = true)
     public SprinklingInfo getSprinklingInfo(int userId, String roomId, String token) {
+        LocalDateTime now = LocalDateTime.now();
+        SprinklingStatementEntity entity = moneySprinklingRepository.findDetailEntity(roomId, token);
 
-        return null;
+        checkGetSprinklingInfoPreCondition(entity, userId);
+
+        // 7일이 지난 조회는 null 리턴
+        LocalDateTime regDate = LocalDateTime.ofInstant(entity.getRegDate().toInstant(), ZoneId.systemDefault());
+        if (now.minusDays(7).isAfter(regDate)) {
+            return null;
+        }
+
+        return SprinklingInfo.of(entity);
+    }
+
+    private void checkGetSprinklingInfoPreCondition(SprinklingStatementEntity entity, int userId) {
+        // 데이터 없음
+        if (entity == null) {
+            throw new RuntimeException();
+        }
+
+        // 뿌린 유저가 아님
+        if (entity.getUserId() != userId) {
+            throw new RuntimeException();
+        }
     }
 }

@@ -11,7 +11,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SprinklingStatementSingle {
+public class SprinklingStatement {
 
     protected Long statementId;
 

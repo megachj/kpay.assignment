@@ -3,7 +3,7 @@ package megachj.kpay.assignment.model.entity;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
-import megachj.kpay.assignment.model.dto.SprinklingStatementSingle;
+import megachj.kpay.assignment.model.dto.SprinklingStatement;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ import java.util.List;
                         columnNames = {"token", "roomId"}
                 )
         })
-public class SprinklingStatementEntity extends SprinklingStatementSingle {
+public class SprinklingStatementEntity extends SprinklingStatement {
 
     @Setter
     private List<DistributedInfoEntity> distributedInfoEntityList = new ArrayList<>();
