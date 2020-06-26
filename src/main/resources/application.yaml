@@ -1,0 +1,10 @@
+app:
+  name: KakaoPay Money Sprinkling Server
+  description: KakaoPay Assignment
+
+---
+
+spring:
+  profiles: local
+logging:
+  config: classpath:logging/logback-local.xml
