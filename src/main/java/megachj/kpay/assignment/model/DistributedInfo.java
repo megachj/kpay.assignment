@@ -18,9 +18,17 @@ public class DistributedInfo {
 
     protected int amount;
 
-    protected boolean isReceived;
+    protected State state;
 
     protected int userId;
 
-    protected Date timestamp;
+    protected Date recvTimestamp;
+
+    public enum State {
+        // 받기 완료
+        DONE,
+
+        // 아직 받지 않은 상태
+        NOT_YET;
+    }
 }

@@ -6,27 +6,24 @@ spring:
     console:
       enabled: true
       path: /h2-console
-
-
-#spring:
-#  jpa:
-#    database-platform: org.hibernate.dialect.H2Dialect
-#    database: h2
-##    openInView: false
-#    show-sql: true
-#    generate-ddl: true
-#    hibernate:
-#      ddl-auto: update # create, create-drop, update, none
-#      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
-#    properties:
-#      hibernate.format_sql: true
-#      hibernate.cache.use_second_level_cache: true
-#      hibernate.cache.use_query_cache: false
-#      hibernate.generate_statistics: false
-#      hibernate.id.new_generator_mappings: true
-#      hibernate.jdbc.batch_size: 1000
-#      hibernate.order_inserts: true
-#      hibernate.order_updates: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    database: h2
+#    openInView: false
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update # create, create-drop, update, none
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate.format_sql: true
+      hibernate.cache.use_second_level_cache: true
+      hibernate.cache.use_query_cache: false
+      hibernate.generate_statistics: false
+      hibernate.id.new_generator_mappings: true
+      hibernate.jdbc.batch_size: 1000
+      hibernate.order_inserts: true
+      hibernate.order_updates: true
 
 # database
 kpay-datasource:
