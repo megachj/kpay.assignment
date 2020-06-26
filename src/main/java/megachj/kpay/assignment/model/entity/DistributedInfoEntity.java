@@ -2,13 +2,15 @@ package megachj.kpay.assignment.model.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
-import megachj.kpay.assignment.model.DistributedInfo;
+import megachj.kpay.assignment.model.dto.DistributedInfo;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
+@NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -18,6 +20,18 @@ public class DistributedInfoEntity extends DistributedInfo {
 
     @Version
     private Integer version;
+
+    public static DistributedInfoEntity newInstance(Long statementId, int no, int amount) {
+        DistributedInfoEntity newEntity = new DistributedInfoEntity();
+        newEntity.setStatementId(statementId);
+        newEntity.setNo(no);
+        newEntity.setAmount(amount);
+        newEntity.setState(State.NOT_YET);
+        newEntity.setUserId(null);
+        newEntity.setRecvTimestamp(null);
+
+        return newEntity;
+    }
 
     @Override
     @javax.persistence.Id
@@ -48,7 +62,7 @@ public class DistributedInfoEntity extends DistributedInfo {
 
     @Override
     @Column
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 

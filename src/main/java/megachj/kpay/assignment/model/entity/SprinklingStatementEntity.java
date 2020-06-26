@@ -3,11 +3,14 @@ package megachj.kpay.assignment.model.entity;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
-import megachj.kpay.assignment.model.SprinklingStatement;
+import megachj.kpay.assignment.model.dto.SprinklingStatementSingle;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -19,15 +22,30 @@ import java.util.Set;
                         columnNames = {"token", "roomId"}
                 )
         })
-public class SprinklingStatementEntity extends SprinklingStatement {
+public class SprinklingStatementEntity extends SprinklingStatementSingle {
 
     @Setter
-    private Set<DistributedInfoEntity> distributedInfoEntitySet;
+    private List<DistributedInfoEntity> distributedInfoEntityList = new ArrayList<>();
+
+    public static SprinklingStatementEntity newInstance(String token, String roomId, int userId, int amount, int distributedNumber) {
+        LocalDateTime now = LocalDateTime.now();
+
+        SprinklingStatementEntity newEntity = new SprinklingStatementEntity();
+        newEntity.setToken(token);
+        newEntity.setRoomId(roomId);
+        newEntity.setUserId(userId);
+        newEntity.setAmount(amount);
+        newEntity.setDistributedNumber(distributedNumber);
+        newEntity.setRegDate(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+        newEntity.setExpiredDate(Date.from(now.plusMinutes(10L).atZone(ZoneId.systemDefault()).toInstant()));
+
+        return newEntity;
+    }
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "statementId")
-    public Set<DistributedInfoEntity> getDistributedInfoEntitySet() {
-        return distributedInfoEntitySet;
+    public List<DistributedInfoEntity> getDistributedInfoEntityList() {
+        return distributedInfoEntityList;
     }
 
     @Override

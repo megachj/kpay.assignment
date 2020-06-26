@@ -1,4 +1,4 @@
-package megachj.kpay.assignment.model;
+package megachj.kpay.assignment.model.dto;
 
 
 import lombok.AllArgsConstructor;
@@ -20,7 +20,7 @@ public class DistributedInfo {
 
     protected State state;
 
-    protected int userId;
+    protected Integer userId;
 
     protected Date recvTimestamp;
 

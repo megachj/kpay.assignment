@@ -1,4 +1,4 @@
-package megachj.kpay.assignment.model;
+package megachj.kpay.assignment.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SprinklingStatement {
+public class SprinklingStatementSingle {
 
     protected Long statementId;
 

@@ -2,9 +2,7 @@ package megachj.kpay.assignment.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import megachj.kpay.assignment.model.rest.ReceiveMoneyResponse;
-import megachj.kpay.assignment.model.rest.SprinklingInfoResponse;
-import megachj.kpay.assignment.model.rest.SprinklingRegistrationResponse;
+import megachj.kpay.assignment.model.rest.*;
 import megachj.kpay.assignment.service.MoneySprinklingService;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +34,9 @@ public class MoneySprinklingController {
         if (log.isDebugEnabled())
             log.debug("userId: {}, roomId: {}, amount: {}, distributedNumber: {}", userId, roomId, amount, distributedNumber);
 
-        return null;
+        String token = moneySprinklingService.addMoneySprinkling(userId, roomId, amount, distributedNumber);
+
+        return new SprinklingRegistrationResponse(new ResponseHeader(0, "SUCCESS", true), token);
     }
 
     /**
@@ -53,7 +53,9 @@ public class MoneySprinklingController {
         if (log.isDebugEnabled())
             log.debug("userId: {}, roomId: {}, token: {}", userId, roomId, token);
 
-        return null;
+        int receivedAmount = moneySprinklingService.receiveMoney(userId, roomId, token);
+
+        return new ReceiveMoneyResponse(new ResponseHeader(0, "SUCCESS", true), receivedAmount);
     }
 
     /**
@@ -70,6 +72,8 @@ public class MoneySprinklingController {
         if (log.isDebugEnabled())
             log.debug("userId: {}, roomId: {}, token: {}", userId, roomId, token);
 
-        return null;
+        SprinklingInfo sprinklingInfo = moneySprinklingService.getSprinklingInfo(userId, roomId, token);
+
+        return new SprinklingInfoResponse(new ResponseHeader(0, "SUCCESS", true), sprinklingInfo);
     }
 }
