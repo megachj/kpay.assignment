@@ -9,8 +9,10 @@ import megachj.kpay.assignment.model.entity.DistributedInfoEntity;
 import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
 import megachj.kpay.assignment.model.dto.SprinklingInfo;
 import megachj.kpay.assignment.repository.DistributedInfoRepository;
-import megachj.kpay.assignment.repository.MoneySprinklingRepository;
+import megachj.kpay.assignment.repository.SprinklingStatementRepository;
 import megachj.kpay.assignment.utils.RandomGenerator;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +33,7 @@ public class MoneySprinklingService {
 
     private static final int SEARCH_LIMIT_DAYS = 7;
 
-    private final MoneySprinklingRepository moneySprinklingRepository;
+    private final SprinklingStatementRepository sprinklingStatementRepository;
 
     private final DistributedInfoRepository distributedInfoRepository;
 
@@ -44,17 +46,32 @@ public class MoneySprinklingService {
      * @param distributedNumber
      * @return token
      * @throws IllegalArgumentException
+     * @throws DataIntegrityViolationException: [roomId, token] 이 중복될때 발생. token 이 3자리 문자열이라 중복 가능성이 있음.
      */
     @Transactional
-    public String addMoneySprinkling(int userId, String roomId, int amount, int distributedNumber) throws IllegalArgumentException {
+    public String addMoneySprinkling(int userId, String roomId, int amount, int distributedNumber) throws IllegalArgumentException, DataIntegrityViolationException {
         if (distributedNumber <= 0 || amount < distributedNumber) {
             throw new IllegalArgumentException("The condition was not satisfied. 0 < distributedNumber <= amount");
         }
 
         String token = RandomGenerator.randomString(TOKEN_LENGTH);
         SprinklingStatementEntity entity = SprinklingStatementEntity.newInstance(token, roomId, userId, amount, distributedNumber, TOKEN_VALID_MINUTES);
-        moneySprinklingRepository.save(entity);
+        try {
+            sprinklingStatementRepository.save(entity);
+        } catch (DataIntegrityViolationException e) {
+            // [roomId, token] 중복인 경우 1번 Retry, 또 중복 발생하면 예외 발생.
+            // 최소 7일이 지난 만료된 뿌리기 정보를 배치로 지우는 작업을 해줘야 중복 가능성 낮아짐.
+            // 또는 token 문자열이 길어져야 중복 가능성 낮아짐.
+            token = RandomGenerator.randomString(TOKEN_LENGTH);
+            entity = SprinklingStatementEntity.newInstance(token, roomId, userId, amount, distributedNumber, TOKEN_VALID_MINUTES);
+            sprinklingStatementRepository.save(entity);
+        }
 
+        /*
+        NOTE: 벌크 삽입이 되지 않음. 벌크 삽입을 하려면 version 필드 값을 강제로 증가시켜야 하고, 그러기 위해선 특별한 락 옵션을 선택해야한다.
+          - 뿌리는 인원이 많다면 성능 이슈가 있을 수 있음. 보통은 카톡 방은 소수 인원이므로 크게 문제되지 않을 것으로 보임.
+          - 정확히 하기 위해선 성능 테스트 필요.
+         */
         List<DistributedInfoEntity> distributedInfoEntities = new ArrayList<>(distributedNumber);
         List<Integer> randomDistributedMoney = RandomGenerator.randomDistribution(amount, distributedNumber);
         for (int idx = 0; idx < randomDistributedMoney.size(); ++idx) {
@@ -74,12 +91,13 @@ public class MoneySprinklingService {
      * @param roomId
      * @param token
      * @return receivedMoney
-     * @throws SprinklingException
+     * @throws SprinklingException: API 예외 조건에 따라 발생.
+     * @throws ObjectOptimisticLockingFailureException: 여러 유저가 동시에 돈을 받을 때 늦게 갱신하는 유저에게 낙관적 락 예외 발생.
      */
     @Transactional
-    public int receiveMoney(int userId, String roomId, String token) throws SprinklingException {
+    public int receiveMoney(int userId, String roomId, String token) throws SprinklingException, ObjectOptimisticLockingFailureException {
         LocalDateTime now = LocalDateTime.now();
-        SprinklingStatementEntity entity = moneySprinklingRepository.findDetailEntity(roomId, token);
+        SprinklingStatementEntity entity = sprinklingStatementRepository.findDetailEntity(roomId, token);
 
         verifyReceiveMoneyPreCondition(entity, now, userId);
 
@@ -138,7 +156,7 @@ public class MoneySprinklingService {
     @Transactional(readOnly = true)
     public SprinklingInfo getSprinklingInfo(int userId, String roomId, String token) throws SprinklingException {
         LocalDateTime now = LocalDateTime.now();
-        SprinklingStatementEntity entity = moneySprinklingRepository.findDetailEntity(roomId, token);
+        SprinklingStatementEntity entity = sprinklingStatementRepository.findDetailEntity(roomId, token);
 
         verifyGetSprinklingInfoPreCondition(entity, now, userId);
 

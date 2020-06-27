@@ -4,7 +4,8 @@ import megachj.kpay.assignment.constant.ResultCodes;
 import megachj.kpay.assignment.exception.SprinklingException;
 import megachj.kpay.assignment.model.dto.SprinklingInfo;
 import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
-import megachj.kpay.assignment.repository.MoneySprinklingRepository;
+import megachj.kpay.assignment.repository.SprinklingStatementRepository;
+import megachj.kpay.assignment.test.LockingFailureTestService;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -12,12 +13,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -32,7 +37,10 @@ public class MoneySprinklingServiceTest {
     private MoneySprinklingService moneySprinklingService;
 
     @Autowired
-    private MoneySprinklingRepository moneySprinklingRepository;
+    private LockingFailureTestService lockingFailureTestService;
+
+    @Autowired
+    private SprinklingStatementRepository sprinklingStatementRepository;
 
     private int user1, user2, user3, user4;
 
@@ -78,6 +86,33 @@ public class MoneySprinklingServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void addMoneySprinkling_exception_test() {
         moneySprinklingService.addMoneySprinkling(user1, room1, 100, 101);
+    }
+
+    /**
+     * 여러 유저가 동시에 돈을 받을 때 늦게 갱신하는 유저에게 낙관적 락 예외 발생 테스트
+     */
+    @Test
+    public void receiveMoney_secondLostUpdateProblem_test() {
+        // user1 이 room1 에 1명에게 10,000원 뿌리기
+        String token = moneySprinklingService.addMoneySprinkling(user1, room1, amount, 1);
+
+        // user2, user3, user4 동시에 갱신
+        List<Integer> userList = Arrays.asList(user2, user3, user4);
+        List<Integer> successUserList = userList
+                .parallelStream()
+                .filter(userN -> {
+                    try {
+                        lockingFailureTestService.receiveMoneyForLockingExceptionTest(userN, room1, token);
+                    } catch (ObjectOptimisticLockingFailureException ex) {
+                        System.out.printf("fail userId: %d\n", userN);
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        assertThat(successUserList.size(), is(1));
+        System.out.printf("success userId: %d\n", successUserList.get(0));
     }
 
     @Test
@@ -137,10 +172,10 @@ public class MoneySprinklingServiceTest {
         }
 
         // 토큰 만료
-        SprinklingStatementEntity entity = moneySprinklingRepository.findByRoomIdAndToken(room1, token);
+        SprinklingStatementEntity entity = sprinklingStatementRepository.findByRoomIdAndToken(room1, token);
         Date newExpiredDate = Date.from(LocalDateTime.now().minusHours(1).atZone(ZoneId.systemDefault()).toInstant());
         entity.setExpiredDate(newExpiredDate);
-        moneySprinklingRepository.save(entity);
+        sprinklingStatementRepository.save(entity);
         try {
             moneySprinklingService.receiveMoney(user4, room1, token);
         } catch (SprinklingException e) {
@@ -188,10 +223,10 @@ public class MoneySprinklingServiceTest {
         }
 
         // 조회 기간 만료
-        SprinklingStatementEntity entity = moneySprinklingRepository.findByRoomIdAndToken(room1, token);
+        SprinklingStatementEntity entity = sprinklingStatementRepository.findByRoomIdAndToken(room1, token);
         Date newRegDate = Date.from(LocalDateTime.now().minusDays(10).atZone(ZoneId.systemDefault()).toInstant());
         entity.setRegDate(newRegDate);
-        moneySprinklingRepository.save(entity);
+        sprinklingStatementRepository.save(entity);
         try {
             moneySprinklingService.getSprinklingInfo(user1, room1, token);
         } catch (SprinklingException e) {

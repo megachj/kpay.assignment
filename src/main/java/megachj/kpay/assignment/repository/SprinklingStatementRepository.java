@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface MoneySprinklingRepository extends JpaRepository<SprinklingStatementEntity, Long> {
+public interface SprinklingStatementRepository extends JpaRepository<SprinklingStatementEntity, Long> {
 
     @Query(
             " SELECT s "

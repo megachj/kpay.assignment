@@ -5,8 +5,10 @@ import megachj.kpay.assignment.constant.ResultCodes;
 import megachj.kpay.assignment.exception.SprinklingException;
 import megachj.kpay.assignment.model.rest.RestResponse;
 import megachj.kpay.assignment.model.rest.RestResponseHeader;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -32,6 +34,24 @@ public class RestProcessingExceptionHandler {
         log.info("", ex);
 
         return new ResponseEntity<>(new RestResponse(new RestResponseHeader(ResultCodes.ILLEGAL_ARGUMENT.getCode(), ex.getMessage(), false)), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<RestResponse> handleObjectOptimisticLockingFailureException(HttpServletRequest request, ObjectOptimisticLockingFailureException ex) {
+
+        log.error("ObjectOptimisticLockingFailureException. \n{}", ex.getMessage());
+        log.info("", ex);
+
+        return new ResponseEntity<>(new RestResponse(new RestResponseHeader(ResultCodes.OPTIMISTIC_LOCKING_FAILURE.getCode(), ResultCodes.OPTIMISTIC_LOCKING_FAILURE.getDefaultMessage(), false)), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<RestResponse> handleDataIntegrityViolationException(HttpServletRequest request, DataIntegrityViolationException ex) {
+
+        log.error("ObjectOptimisticLockingFailureException. \n{}", ex.getMessage());
+        log.info("", ex);
+
+        return new ResponseEntity<>(new RestResponse(new RestResponseHeader(ResultCodes.DATA_INTEGRITY_VIOLATION.getCode(), ResultCodes.DATA_INTEGRITY_VIOLATION.getDefaultMessage(), false)), HttpStatus.OK);
     }
 
     @ExceptionHandler(Exception.class)

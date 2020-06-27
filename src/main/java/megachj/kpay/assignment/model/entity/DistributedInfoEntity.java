@@ -1,9 +1,6 @@
 package megachj.kpay.assignment.model.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import megachj.kpay.assignment.model.dto.DistributedInfo;
 
 import javax.persistence.*;
@@ -23,7 +20,7 @@ import java.util.Date;
         })
 public class DistributedInfoEntity extends DistributedInfo {
 
-    @Version
+    @Setter
     private Integer version;
 
     public static DistributedInfoEntity newInstance(Long statementId, int no, int amount) {
@@ -36,6 +33,18 @@ public class DistributedInfoEntity extends DistributedInfo {
         newEntity.setRecvTimestamp(null);
 
         return newEntity;
+    }
+
+    /*
+    NOTE: 두 번의 갱신 분실 문제(second lost updates problem) 해결을 위한 필드
+      - userA, userB 가 동시에 돈을 받아가는 문제가 발생할 수 있음.
+      - 최초 커밋만 인정: userA, userB 중 먼저 갱신한 커밋만 인정하고, 나중에 갱신하는 유저에는 낙관적 락 예외 발생.
+        org.springframework.orm.ObjectOptimisticLockingFailureException
+     */
+    @Version
+    @Column
+    public Integer getVersion() {
+        return version;
     }
 
     // unique key

@@ -17,6 +17,10 @@ public enum ResultCodes {
     MONEY_RUN_OUT(-400_00_04, "The money has run out."),
     // 조회 기간 만료 예외
     SEARCH_PERIOD_EXPIRATION(-400_00_05, "The search period expiration."),
+    // 데이터 정합성 예외
+    DATA_INTEGRITY_VIOLATION(-400_00_06, "Data integrity violation. Please Retry."),
+    // 여러 유저가 동시에 돈을 가져갈때 발생하는 예외(동기화, 낙관적 락 예외)
+    OPTIMISTIC_LOCKING_FAILURE(-400_01_00, "Synchronization exception. Please Retry."),
     // 서버 내부 오류
     INTERNAL_SERVER_ERROR(-500_00_00, "Internal server error.");
 
