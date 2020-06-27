@@ -90,7 +90,6 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
 
     // Etc
-//    compile 'org.hibernate:hibernate-entitymanager:5.4.18.Final'
     compile 'com.h2database:h2:1.4.200'
     compile 'com.zaxxer:HikariCP:3.4.5'
     compileOnly 'org.projectlombok:lombok:1.16.18'

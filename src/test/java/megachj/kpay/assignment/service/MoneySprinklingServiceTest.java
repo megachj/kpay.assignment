@@ -2,7 +2,7 @@ package megachj.kpay.assignment.service;
 
 import megachj.kpay.assignment.constant.ResultCodes;
 import megachj.kpay.assignment.exception.SprinklingException;
-import megachj.kpay.assignment.model.rest.SprinklingInfo;
+import megachj.kpay.assignment.model.dto.SprinklingInfo;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;

@@ -1,13 +1,17 @@
 package megachj.kpay.assignment.model.rest;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
 @Data
-@AllArgsConstructor
-public class SprinklingRegistrationResponse {
-
-    private ResponseHeader header;
+@NoArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class SprinklingRegistrationResponse extends RestResponse {
 
     private String token;
+
+    public SprinklingRegistrationResponse(RestResponseHeader header, String token) {
+        super(header);
+        this.token = token;
+    }
 }

@@ -1,10 +1,8 @@
-package megachj.kpay.assignment.model.rest;
+package megachj.kpay.assignment.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import megachj.kpay.assignment.model.dto.DistributedInfo;
-import megachj.kpay.assignment.model.entity.DistributedInfoEntity;
 import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
 
 import java.time.LocalDateTime;

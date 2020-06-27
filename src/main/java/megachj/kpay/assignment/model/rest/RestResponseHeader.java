@@ -5,7 +5,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseHeader {
+public class RestResponseHeader {
 
     private int resultCode;
 

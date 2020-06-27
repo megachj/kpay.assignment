@@ -7,7 +7,7 @@ import megachj.kpay.assignment.exception.SprinklingException;
 import megachj.kpay.assignment.model.dto.DistributedInfo;
 import megachj.kpay.assignment.model.entity.DistributedInfoEntity;
 import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
-import megachj.kpay.assignment.model.rest.SprinklingInfo;
+import megachj.kpay.assignment.model.dto.SprinklingInfo;
 import megachj.kpay.assignment.repository.DistributedInfoRepository;
 import megachj.kpay.assignment.repository.MoneySprinklingRepository;
 import megachj.kpay.assignment.utils.RandomGenerator;
@@ -62,6 +62,8 @@ public class MoneySprinklingService {
         }
         distributedInfoRepository.save(distributedInfoEntities);
 
+        log.info("userId: {}, roomId: {}, amount: {}, distributedNumber: {}, token: {}", userId, roomId, amount, distributedNumber, token);
+
         return token;
     }
 
@@ -90,6 +92,8 @@ public class MoneySprinklingService {
         distributedInfoEntity.setState(DistributedInfo.State.DONE);
         distributedInfoEntity.setUserId(userId);
         distributedInfoEntity.setRecvTimestamp(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+
+        log.info("userId: {}, roomId: {}, token: {}", userId, roomId, token);
 
         return distributedInfoEntity.getAmount();
     }

@@ -3,6 +3,7 @@ package megachj.kpay.assignment.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import megachj.kpay.assignment.constant.ResultCodes;
+import megachj.kpay.assignment.model.dto.SprinklingInfo;
 import megachj.kpay.assignment.model.rest.*;
 import megachj.kpay.assignment.service.MoneySprinklingService;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/money-sprinkling/v1")
+@RequestMapping("/money-sprinkling/v1.0")
 public class MoneySprinklingController {
 
     private static final String HTTP_HEADER_USER_ID = "X-USER-ID";
@@ -37,7 +38,7 @@ public class MoneySprinklingController {
 
         String token = moneySprinklingService.addMoneySprinkling(userId, roomId, amount, distributedNumber);
 
-        return new SprinklingRegistrationResponse(new ResponseHeader(ResultCodes.OK.getCode(), ResultCodes.OK.getDefaultMessage(), true), token);
+        return new SprinklingRegistrationResponse(new RestResponseHeader(ResultCodes.OK.getCode(), ResultCodes.OK.getDefaultMessage(), true), token);
     }
 
     /**
@@ -56,7 +57,7 @@ public class MoneySprinklingController {
 
         int receivedAmount = moneySprinklingService.receiveMoney(userId, roomId, token);
 
-        return new ReceiveMoneyResponse(new ResponseHeader(ResultCodes.OK.getCode(), ResultCodes.OK.getDefaultMessage(), true), receivedAmount);
+        return new ReceiveMoneyResponse(new RestResponseHeader(ResultCodes.OK.getCode(), ResultCodes.OK.getDefaultMessage(), true), receivedAmount);
     }
 
     /**
@@ -75,6 +76,6 @@ public class MoneySprinklingController {
 
         SprinklingInfo sprinklingInfo = moneySprinklingService.getSprinklingInfo(userId, roomId, token);
 
-        return new SprinklingInfoResponse(new ResponseHeader(ResultCodes.OK.getCode(), ResultCodes.OK.getDefaultMessage(), true), sprinklingInfo);
+        return new SprinklingInfoResponse(new RestResponseHeader(ResultCodes.OK.getCode(), ResultCodes.OK.getDefaultMessage(), true), sprinklingInfo);
     }
 }
