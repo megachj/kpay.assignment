@@ -3,6 +3,8 @@ package megachj.kpay.assignment.service;
 import megachj.kpay.assignment.constant.ResultCodes;
 import megachj.kpay.assignment.exception.SprinklingException;
 import megachj.kpay.assignment.model.dto.SprinklingInfo;
+import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
+import megachj.kpay.assignment.repository.MoneySprinklingRepository;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -12,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -24,6 +30,9 @@ public class MoneySprinklingServiceTest {
 
     @Autowired
     private MoneySprinklingService moneySprinklingService;
+
+    @Autowired
+    private MoneySprinklingRepository moneySprinklingRepository;
 
     private int user1, user2, user3, user4;
 
@@ -127,9 +136,20 @@ public class MoneySprinklingServiceTest {
             exceptionCount++;
         }
 
-        // TODO: 토큰 만료
+        // 토큰 만료
+        SprinklingStatementEntity entity = moneySprinklingRepository.findByRoomIdAndToken(room1, token);
+        Date newExpiredDate = Date.from(LocalDateTime.now().minusHours(1).atZone(ZoneId.systemDefault()).toInstant());
+        entity.setExpiredDate(newExpiredDate);
+        moneySprinklingRepository.save(entity);
+        try {
+            moneySprinklingService.receiveMoney(user4, room1, token);
+        } catch (SprinklingException e) {
+            assertThat(e.getResultCode(), is(ResultCodes.EXPIRED_TOKEN.getCode()));
+            System.out.println("exception: EXPIRED_TOKEN");
+            exceptionCount++;
+        }
 
-        assertThat(exceptionCount, is(5));
+        assertThat(exceptionCount, is(6));
     }
 
     @Test
@@ -167,8 +187,19 @@ public class MoneySprinklingServiceTest {
             exceptionCount++;
         }
 
-        // TODO: 조회 기간 만료
+        // 조회 기간 만료
+        SprinklingStatementEntity entity = moneySprinklingRepository.findByRoomIdAndToken(room1, token);
+        Date newRegDate = Date.from(LocalDateTime.now().minusDays(10).atZone(ZoneId.systemDefault()).toInstant());
+        entity.setRegDate(newRegDate);
+        moneySprinklingRepository.save(entity);
+        try {
+            moneySprinklingService.getSprinklingInfo(user1, room1, token);
+        } catch (SprinklingException e) {
+            assertThat(e.getResultCode(), is(ResultCodes.SEARCH_PERIOD_EXPIRATION.getCode()));
+            System.out.println("exception: SEARCH_PERIOD_EXPIRATION");
+            exceptionCount++;
+        }
 
-        assertThat(exceptionCount, is(3));
+        assertThat(exceptionCount, is(4));
     }
 }

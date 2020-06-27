@@ -14,4 +14,6 @@ public interface MoneySprinklingRepository extends JpaRepository<SprinklingState
             + " WHERE s.roomId = :roomId AND s.token = :token "
     )
     SprinklingStatementEntity findDetailEntity(@Param("roomId") String roomId, @Param("token") String token);
+
+    SprinklingStatementEntity findByRoomIdAndToken(@Param("roomId") String roomId, @Param("token") String token);
 }
