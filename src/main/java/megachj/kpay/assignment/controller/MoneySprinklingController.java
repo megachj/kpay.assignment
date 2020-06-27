@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import megachj.kpay.assignment.constant.ResultCodes;
 import megachj.kpay.assignment.model.dto.SprinklingInfo;
-import megachj.kpay.assignment.model.rest.*;
+import megachj.kpay.assignment.model.rest.ReceiveMoneyResponse;
+import megachj.kpay.assignment.model.rest.RestResponseHeader;
+import megachj.kpay.assignment.model.rest.SprinklingInfoResponse;
+import megachj.kpay.assignment.model.rest.SprinklingRegistrationResponse;
 import megachj.kpay.assignment.service.MoneySprinklingService;
 import org.springframework.web.bind.annotation.*;
 

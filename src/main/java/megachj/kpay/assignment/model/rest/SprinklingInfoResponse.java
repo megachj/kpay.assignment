@@ -1,6 +1,9 @@
 package megachj.kpay.assignment.model.rest;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import megachj.kpay.assignment.model.dto.SprinklingInfo;
 
 @Data

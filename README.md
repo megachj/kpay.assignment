@@ -5,6 +5,9 @@
 * Gradle v4.8.1
 * JPA/Hibernate, local h2DB
 
+## 서버 실행
+* VM Argument 에 -Dspring.profiles.active=local 옵션을 주고 실행한다.
+
 ## 구조
 ### Controller
 뿌리기 API, 받기 API, 조회 API 제공

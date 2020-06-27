@@ -1,7 +1,6 @@
 package megachj.kpay.assignment.repository;
 
 import megachj.kpay.assignment.model.entity.SprinklingStatementEntity;
-import megachj.kpay.assignment.utils.RandomGenerator;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
