@@ -27,7 +27,7 @@ public class SprinklingStatementEntity extends SprinklingStatement {
     @Setter
     private List<DistributedInfoEntity> distributedInfoEntityList = new ArrayList<>();
 
-    public static SprinklingStatementEntity newInstance(String token, String roomId, int userId, int amount, int distributedNumber) {
+    public static SprinklingStatementEntity newInstance(String token, String roomId, int userId, int amount, int distributedNumber, long tokenValidMinutes) {
         LocalDateTime now = LocalDateTime.now();
 
         SprinklingStatementEntity newEntity = new SprinklingStatementEntity();
@@ -37,7 +37,7 @@ public class SprinklingStatementEntity extends SprinklingStatement {
         newEntity.setAmount(amount);
         newEntity.setDistributedNumber(distributedNumber);
         newEntity.setRegDate(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
-        newEntity.setExpiredDate(Date.from(now.plusMinutes(10L).atZone(ZoneId.systemDefault()).toInstant()));
+        newEntity.setExpiredDate(Date.from(now.plusMinutes(tokenValidMinutes).atZone(ZoneId.systemDefault()).toInstant()));
 
         return newEntity;
     }

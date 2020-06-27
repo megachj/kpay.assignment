@@ -19,12 +19,15 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class MoneySprinklingService {
+
+    private static final long TOKEN_VALID_MINUTES = 10;
+
+    private static final int TOKEN_LENGTH = 3;
 
     private static final int SEARCH_LIMIT_DAYS = 7;
 
@@ -32,15 +35,24 @@ public class MoneySprinklingService {
 
     private final DistributedInfoRepository distributedInfoRepository;
 
+    /**
+     * 돈 뿌리기 등록
+     *
+     * @param userId
+     * @param roomId
+     * @param amount
+     * @param distributedNumber
+     * @return token
+     * @throws IllegalArgumentException
+     */
     @Transactional
-    public String addMoneySprinkling(int userId, String roomId, int amount, int distributedNumber) throws IllegalArgumentException, SprinklingException {
+    public String addMoneySprinkling(int userId, String roomId, int amount, int distributedNumber) throws IllegalArgumentException {
         if (distributedNumber <= 0 || amount < distributedNumber) {
             throw new IllegalArgumentException("The condition was not satisfied. 0 < distributedNumber <= amount");
         }
 
-        String token = UUID.randomUUID().toString().substring(0, 3);
-
-        SprinklingStatementEntity entity = SprinklingStatementEntity.newInstance(token, roomId, userId, amount, distributedNumber);
+        String token = RandomGenerator.randomString(TOKEN_LENGTH);
+        SprinklingStatementEntity entity = SprinklingStatementEntity.newInstance(token, roomId, userId, amount, distributedNumber, TOKEN_VALID_MINUTES);
         moneySprinklingRepository.save(entity);
 
         List<DistributedInfoEntity> distributedInfoEntities = new ArrayList<>(distributedNumber);
@@ -53,6 +65,15 @@ public class MoneySprinklingService {
         return token;
     }
 
+    /**
+     * 뿌린 돈 받아가기
+     *
+     * @param userId
+     * @param roomId
+     * @param token
+     * @return receivedMoney
+     * @throws SprinklingException
+     */
     @Transactional
     public int receiveMoney(int userId, String roomId, String token) throws SprinklingException {
         LocalDateTime now = LocalDateTime.now();
@@ -79,7 +100,7 @@ public class MoneySprinklingService {
             throw new SprinklingException(System.currentTimeMillis(), ResultCodes.DATA_NOT_FOUND.getCode(), ResultCodes.DATA_NOT_FOUND.getDefaultMessage());
         }
 
-        // token 만료
+        // 토큰 만료
         LocalDateTime expiredDate = LocalDateTime.ofInstant(entity.getExpiredDate().toInstant(), ZoneId.systemDefault());
         if (!now.isBefore(expiredDate)) {
             throw new SprinklingException(System.currentTimeMillis(), ResultCodes.EXPIRED_TOKEN.getCode(), ResultCodes.EXPIRED_TOKEN.getDefaultMessage());
@@ -101,6 +122,15 @@ public class MoneySprinklingService {
         }
     }
 
+    /**
+     * 돈 뿌린 내역 조회
+     *
+     * @param userId
+     * @param roomId
+     * @param token
+     * @return sprinklingInfo
+     * @throws SprinklingException
+     */
     @Transactional(readOnly = true)
     public SprinklingInfo getSprinklingInfo(int userId, String roomId, String token) throws SprinklingException {
         LocalDateTime now = LocalDateTime.now();
@@ -122,7 +152,7 @@ public class MoneySprinklingService {
             throw new SprinklingException(System.currentTimeMillis(), ResultCodes.INVALID_USER.getCode(), "Only user who sprinkle money can search it.");
         }
 
-        // SEARCH_LIMIT_DAYS 지난 데이터는 조회할 수 없음
+        // 조회 기간 만료
         LocalDateTime regDate = LocalDateTime.ofInstant(entity.getRegDate().toInstant(), ZoneId.systemDefault());
         if (now.minusDays(SEARCH_LIMIT_DAYS).isAfter(regDate)) {
             throw new SprinklingException(System.currentTimeMillis(), ResultCodes.SEARCH_PERIOD_EXPIRATION.getCode(), ResultCodes.SEARCH_PERIOD_EXPIRATION.getDefaultMessage());
